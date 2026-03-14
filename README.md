@@ -55,6 +55,20 @@ Once installed, ask OpenClaw to:
 - refine an existing harness
 - validate a codebase using the CLI-Anything methodology
 
+## Quick test
+
+Run the minimal install test:
+
+```bash
+bash tests/test_install.sh
+```
+
+## Example
+
+See a practical review example in:
+
+- `examples/demo.md`
+
 Example:
 
 ```text
