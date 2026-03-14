@@ -109,6 +109,15 @@ CLI remains one of the best interfaces for agents because it is:
 That makes CLI-Anything important.
 And that makes an OpenClaw-native adaptation worth having.
 
+## Distribution
+
+This GitHub repository and the ClawHub-published skill are maintained as **separate distributions**.
+
+- **GitHub repo**: project source, docs, tests, examples, and integration materials
+- **ClawHub skill**: a portable published skill bundle prepared specifically for registry installation
+
+That separation keeps the repository cleaner while ensuring the ClawHub release remains portable for public users.
+
 ## Upstream source
 
 - https://github.com/HKUDS/CLI-Anything

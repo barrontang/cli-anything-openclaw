@@ -112,6 +112,15 @@ AI Agent 正在逐渐成为真正的软件用户。
 这也是 CLI-Anything 为什么重要。
 而这个项目的意义，就是让 OpenClaw 也能自然使用这套方法论。
 
+## 发布方式
+
+这个 GitHub 仓库和发布到 ClawHub 的 skill，采用的是**分离发布**策略。
+
+- **GitHub repo**：保存项目源码、文档、测试、示例和集成说明
+- **ClawHub skill**：专门为公共注册表准备的可移植 skill 发布包
+
+这样做的好处是：既能保持 GitHub 仓库结构清晰，也能保证 ClawHub 上的公开版本是可移植、可安装的。
+
 ## 上游项目
 
 - https://github.com/HKUDS/CLI-Anything
