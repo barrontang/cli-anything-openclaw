@@ -31,6 +31,7 @@ So instead of forcing OpenClaw into Claude Code or OpenCode installation pattern
 skills/cli-anything/SKILL.md      # OpenClaw skill entrypoint
 scripts/install-to-workspace.sh   # Install into an OpenClaw workspace
 references/upstream-layout.md     # How this maps to upstream CLI-Anything
+examples/                         # Review / build / refine demos
 launch/                           # Blog + X + Weibo + WeChat launch copy
 ```
 
@@ -46,6 +47,12 @@ Or, from inside a workspace:
 
 ```bash
 bash scripts/install-to-workspace.sh .
+```
+
+If your upstream CLI-Anything clone lives somewhere else, override the path:
+
+```bash
+CLI_ANYTHING_UPSTREAM_PATH=/path/to/CLI-Anything bash scripts/install-to-workspace.sh ~/.openclaw/workspace
 ```
 
 ## Usage
@@ -68,6 +75,8 @@ bash tests/test_install.sh
 See a practical review example in:
 
 - `examples/demo.md`
+- `examples/build-demo.md`
+- `examples/refine-demo.md`
 
 Example:
 
