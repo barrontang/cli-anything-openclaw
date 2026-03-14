@@ -1,63 +1,44 @@
-# CLI-Anything for OpenClaw：把 CLI-Anything 方法论真正带进 OpenClaw
+# CLI-Anything for OpenClaw：把 CLI-Anything 方法论带进 OpenClaw
 
-最近我做了一个小仓库：**CLI-Anything for OpenClaw**。
+我做了一个小仓库：**CLI-Anything for OpenClaw**。
 
-它的核心目标很直接：
-**把 HKUDS 的 CLI-Anything 方法论，转换成 OpenClaw 可以直接使用的原生 Skill 形态。**
+它的目标很直接：
+**把 HKUDS 的 CLI-Anything 方法论，转换成 OpenClaw 可以直接发现、安装和触发的原生 Skill。**
 
-## 为什么要做这件事？
+## 为什么值得做
 
-CLI-Anything 很有意思。
-它本质上是在回答一个越来越重要的问题：
+CLI-Anything 的核心价值，在于把软件往“更适合 AI Agent 使用”的方向推进。
 
-> 当未来的软件用户不只是人，还包括 AI Agent 时，我们该怎样给软件建立更适合 Agent 的接口？
+而 OpenClaw 的优势，在于：
+- 工作区 Skill
+- 本地自动化流程
+- 任务驱动的 agent 工作方式
 
-其中一个答案，就是 CLI。
+所以最合理的做法，不是强行把 OpenClaw 套进别人的插件安装路径，
+而是把方法论包装成 **OpenClaw 自己擅长消费的 Skill 结构**。
 
-CLI 对 Agent 来说天然友好，因为它：
-- 结构化
-- 可组合
-- 可脚本化
-- 容易验证
-- 比 GUI 更适合作为自动化接口
+## 这个仓库做了什么
 
-CLI-Anything 的价值，就在于它试图把“任意软件”往这种 agent-native 的方向推进。
+它提供了：
+- `skills/cli-anything/SKILL.md`
+- 工作区安装脚本
+- 对上游 CLI-Anything 结构的映射说明
+- 可直接用于 OpenClaw 的接入层
 
-## 但 OpenClaw 需要自己的接入方式
+## 它不是什么
 
-问题在于，原始项目主要围绕其他工具生态来组织，例如 Claude Code、OpenCode、Codex 等。
+它不是对上游的替代。
+它不是一个重新发明的 CLI-Anything。
 
-而 OpenClaw 的工作方式并不完全一样。
+更准确地说，它是：
+**一个 OpenClaw-native adapter。**
 
-OpenClaw 更适合的路径是：
-- 在工作区内管理 Skill
-- 通过本地文件和方法论驱动任务
-- 在现有自动化流程中自然调用能力
+## 它适合谁
 
-所以，最合理的做法不是硬塞一个插件安装逻辑进 OpenClaw，
-而是**把 CLI-Anything 改写成 OpenClaw 能直接理解和触发的 Skill 结构。**
-
-## 这个仓库做了什么？
-
-这个仓库提供了：
-- OpenClaw 可发现的 `cli-anything` skill
-- 面向工作区安装的简单脚本
-- 对上游方法论文档的映射说明
-- 一个更适合 OpenClaw 用户的接入层
-
-它不是替代上游项目，
-而是一个 **OpenClaw-native adapter**。
-
-## 它适合谁？
-
-如果你正在做这些事情，这个仓库会很适合你：
-- 想让 OpenClaw 更自然地调用 CLI-Anything 方法论
-- 想分析某个 GUI 软件，构建 agent-friendly CLI
-- 想把软件能力封装成更适合 Agent 使用的接口
-- 想把方法论沉淀成 OpenClaw Skill，而不是分散在外部工具链里
+- 想让 OpenClaw 使用 CLI-Anything 方法论的人
+- 想把 GUI 软件能力转换成 agent-friendly CLI 的人
+- 想沉淀 OpenClaw 本地 Skill 生态的人
 
 ## 仓库地址
 
 https://github.com/barrontang/cli-anything-openclaw
-
-如果你对 AI Agent、CLI、软件接口演化、自动化工具链这些方向有兴趣，欢迎交流。
