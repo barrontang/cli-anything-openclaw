@@ -1,5 +1,7 @@
 # CLI-Anything for OpenClaw
 
+[English](README.md)
+
 **把 CLI-Anything 方法论，以 OpenClaw 原生 workspace skill 的方式接入 OpenClaw。**
 
 这个项目把 [HKUDS/CLI-Anything](https://github.com/HKUDS/CLI-Anything) 适配给 OpenClaw，让 agent-native CLI generation 可以直接进入 OpenClaw 的工作流，而不是依赖其他工具的插件体系。
