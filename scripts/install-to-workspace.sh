@@ -35,7 +35,7 @@ Prefer this workflow:
 - analyze codebase/backend
 - design command groups and state model
 - implement harness under an \
-`agent-harness/` directory
+agent-harness/ directory
 - plan tests before writing them
 - validate packaging and CLI entry points
 
