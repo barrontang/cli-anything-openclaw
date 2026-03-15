@@ -1,0 +1,81 @@
+#!/bin/bash
+# justfocus-cli — CLI harness for JustFocus.app (Pomodoro timer)
+# Bundle ID: me.justinyan.justfocus
+set -euo pipefail
+
+APPNAME="JustFocus"
+BUNDLE_ID="me.justinyan.justfocus"
+
+usage() {
+  cat <<EOF
+justfocus — CLI for JustFocus.app (Pomodoro Timer)
+
+Usage:
+  justfocus start        Start a Pomodoro session
+  justfocus break        Take a short break
+  justfocus longbreak    Take a long break
+  justfocus stop         Stop current timer
+  justfocus status       Show if JustFocus is running
+  justfocus launch       Open JustFocus
+  justfocus quit         Quit JustFocus
+  justfocus help         Show this help
+
+Examples:
+  justfocus start        # Start 25-min focus session
+  justfocus break        # Take a 5-min break
+  justfocus stop         # Stop whatever's running
+EOF
+}
+
+ensure_running() {
+  if ! pgrep -x "$APPNAME" >/dev/null 2>&1; then
+    open -a "$APPNAME"
+    sleep 1.5
+  fi
+}
+
+case "${1:-help}" in
+  start|focus|pomodoro)
+    ensure_running
+    osascript -e "tell application \"$APPNAME\" to start pomodoro"
+    echo "🍅 Pomodoro started!"
+    ;;
+  break|short)
+    ensure_running
+    osascript -e "tell application \"$APPNAME\" to short break"
+    echo "☕ Short break started!"
+    ;;
+  longbreak|long)
+    ensure_running
+    osascript -e "tell application \"$APPNAME\" to long break"
+    echo "🏖️  Long break started!"
+    ;;
+  stop)
+    ensure_running
+    osascript -e "tell application \"$APPNAME\" to stop"
+    echo "⏹️  Timer stopped."
+    ;;
+  status)
+    if pgrep -x "$APPNAME" >/dev/null 2>&1; then
+      echo "✅ JustFocus is running (PID: $(pgrep -x $APPNAME))"
+    else
+      echo "❌ JustFocus is not running"
+    fi
+    ;;
+  launch|open)
+    open -a "$APPNAME"
+    echo "🚀 JustFocus launched."
+    ;;
+  quit|exit)
+    osascript -e "tell application \"$APPNAME\" to quit"
+    echo "👋 JustFocus quit."
+    ;;
+  help|--help|-h)
+    usage
+    ;;
+  *)
+    echo "Unknown command: $1"
+    usage
+    exit 1
+    ;;
+esac

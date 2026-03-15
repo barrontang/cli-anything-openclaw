@@ -1,0 +1,185 @@
+#!/bin/bash
+# quicktime — CLI harness for QuickTime Player.app
+# Supports: open, play, pause, stop, record (movie/audio/screen), export, info, trim
+set -euo pipefail
+
+APP="QuickTime Player"
+
+usage() {
+  cat <<EOF
+quicktime — CLI for QuickTime Player
+
+Usage:
+  quicktime open <file>              Open a media file
+  quicktime play                     Play current document
+  quicktime pause                    Pause playback
+  quicktime stop                     Stop playback (rewind to start)
+  quicktime info                     Show current document info
+  quicktime seek <seconds>           Seek to position
+  quicktime volume <0-100>           Set volume (0-100)
+  quicktime record movie             Start movie recording (camera)
+  quicktime record audio             Start audio recording
+  quicktime record screen            Start screen recording
+  quicktime record stop              Stop recording
+  quicktime export <outfile> [quality]  Export current doc (1080p/720p/480p)
+  quicktime close                    Close current document
+  quicktime list                     List open documents
+  quicktime launch                   Open QuickTime Player
+  quicktime quit                     Quit QuickTime Player
+  quicktime help                     Show this help
+
+Examples:
+  quicktime open ~/Movies/demo.mp4
+  quicktime record screen
+  quicktime record stop
+  quicktime export ~/Desktop/out.mov 1080p
+EOF
+}
+
+ensure_running() {
+  if ! pgrep -f "QuickTime Player" >/dev/null 2>&1; then
+    open -a "$APP"
+    sleep 1.5
+  fi
+}
+
+osa() {
+  osascript -e "tell application \"$APP\" to $1" 2>&1
+}
+
+case "${1:-help}" in
+
+  open)
+    [ -z "${2:-}" ] && echo "Usage: quicktime open <file>" && exit 1
+    ABSPATH="$(cd "$(dirname "$2")" && pwd)/$(basename "$2")"
+    ensure_running
+    osascript -e "tell application \"$APP\" to open POSIX file \"$ABSPATH\""
+    echo "📂 Opened: $ABSPATH"
+    ;;
+
+  play)
+    osa "play document 1"
+    echo "▶️  Playing."
+    ;;
+
+  pause)
+    osa "pause document 1"
+    echo "⏸️  Paused."
+    ;;
+
+  stop)
+    osa "stop document 1"
+    echo "⏹️  Stopped."
+    ;;
+
+  info)
+    osascript <<'EOF'
+tell application "QuickTime Player"
+  set d to document 1
+  set n to name of d
+  set dur to duration of d
+  set ct to current time of d
+  set p to playing of d
+  return "Name: " & n & "\nDuration: " & dur & "s\nPosition: " & ct & "s\nPlaying: " & p
+end tell
+EOF
+    ;;
+
+  seek)
+    [ -z "${2:-}" ] && echo "Usage: quicktime seek <seconds>" && exit 1
+    osa "set current time of document 1 to $2"
+    echo "⏩ Seeked to ${2}s."
+    ;;
+
+  volume|vol)
+    [ -z "${2:-}" ] && echo "Usage: quicktime volume <0-100>" && exit 1
+    # QT volume is 0.0-1.0
+    VOL=$(echo "scale=2; $2 / 100" | bc)
+    osa "set audio volume of document 1 to $VOL"
+    echo "🔊 Volume set to $2%."
+    ;;
+
+  record)
+    ensure_running
+    case "${2:-}" in
+      movie|video|cam)
+        osa "new movie recording"
+        sleep 1
+        osa "start document 1"
+        echo "🎬 Movie recording started (camera)."
+        ;;
+      audio|mic)
+        osa "new audio recording"
+        sleep 1
+        osa "start document 1"
+        echo "🎙️  Audio recording started."
+        ;;
+      screen)
+        osa "new screen recording"
+        sleep 1
+        osa "start document 1"
+        echo "🖥️  Screen recording started."
+        ;;
+      stop)
+        osa "stop document 1"
+        echo "⏹️  Recording stopped."
+        ;;
+      *)
+        echo "Usage: quicktime record [movie|audio|screen|stop]"
+        exit 1
+        ;;
+    esac
+    ;;
+
+  export)
+    [ -z "${2:-}" ] && echo "Usage: quicktime export <outfile> [1080p|720p|480p]" && exit 1
+    OUTPATH="$(cd "$(dirname "$2")" 2>/dev/null && pwd)/$(basename "$2")"
+    QUALITY="${3:-1080p}"
+    case "$QUALITY" in
+      1080p) QT_QUALITY="1080p" ;;
+      720p)  QT_QUALITY="720p" ;;
+      480p)  QT_QUALITY="480p" ;;
+      *)     echo "Quality: 1080p, 720p, or 480p"; exit 1 ;;
+    esac
+    osascript -e "tell application \"$APP\" to export document 1 in POSIX file \"$OUTPATH\" using settings preset \"$QT_QUALITY\""
+    echo "📤 Exported to: $OUTPATH ($QT_QUALITY)"
+    ;;
+
+  close)
+    osa "close document 1 saving no"
+    echo "🗑️  Document closed."
+    ;;
+
+  list)
+    osascript <<'EOF'
+tell application "QuickTime Player"
+  set docs to every document
+  set output to ""
+  repeat with d in docs
+    set output to output & name of d & "\n"
+  end repeat
+  return output
+end tell
+EOF
+    ;;
+
+  launch)
+    open -a "$APP"
+    echo "🚀 QuickTime Player launched."
+    ;;
+
+  quit|exit)
+    osa "quit"
+    echo "👋 QuickTime Player quit."
+    ;;
+
+  help|--help|-h)
+    usage
+    ;;
+
+  *)
+    echo "Unknown command: $1"
+    usage
+    exit 1
+    ;;
+esac

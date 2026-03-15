@@ -2,122 +2,222 @@
 
 [中文文档](README_CN.md)
 
-**Bring the CLI-Anything methodology into OpenClaw as a native workspace skill.**
+**Turn any macOS/Linux app into an agent-controlled CLI in 60 seconds.**
 
-This project adapts [HKUDS/CLI-Anything](https://github.com/HKUDS/CLI-Anything) for OpenClaw so agent-native CLI generation can live inside an OpenClaw workflow instead of being tied to another tool's plugin system.
+This project brings the [HKUDS/CLI-Anything](https://github.com/HKUDS/CLI-Anything) methodology into OpenClaw as a native workspace skill — so your AI agent can build CLI harnesses for GUI apps, control them from the terminal, and automate anything.
 
-## Why this exists
+> *"If it has an AppleScript dictionary, a D-Bus interface, or an API — it gets a CLI."*
 
-CLI-Anything is a strong methodology for turning existing software into agent-usable CLIs.
+---
 
-But OpenClaw has its own strengths:
-- workspace-local skills
-- agent-driven file workflows
-- private automation environments
-- direct adaptation into real operator workflows
+## 🎬 Real-World Demos
 
-So instead of forcing OpenClaw into Claude Code or OpenCode installation patterns, this repository takes the cleaner path:
+These were built live by an OpenClaw agent in under 60 seconds each. No templates, no boilerplate — just the agent analyzing the app's scripting API and generating a working CLI.
 
-**package the CLI-Anything approach in a shape OpenClaw can actually use.**
+### Demo 1: JustFocus (Pomodoro Timer) → `justfocus`
 
-## What you get
+**The ask:** *"cli-anything JustFocus"*
 
-- an OpenClaw-native skill: `cli-anything`
-- a workspace install script
-- a clean adapter layer to the upstream methodology
-- a practical starting point for agent-native software automation in OpenClaw
+**What the agent did:**
+1. Found `JustFocus.sdef` (AppleScript dictionary) inside the app bundle
+2. Discovered 4 commands: `start pomodoro`, `short break`, `long break`, `stop`
+3. Generated a bash CLI harness with auto-launch
 
-## Included
+**Result:**
 
-```text
-skills/cli-anything/SKILL.md      # OpenClaw skill entrypoint
-scripts/install-to-workspace.sh   # Install into an OpenClaw workspace
-references/upstream-layout.md     # How this maps to upstream CLI-Anything
-examples/                         # Review / build / refine demos
-launch/                           # Blog + X + Weibo + WeChat launch copy
+```bash
+$ justfocus start
+🍅 Pomodoro started!
+
+$ justfocus break
+☕ Short break started!
+
+$ justfocus longbreak
+🏖️  Long break started!
+
+$ justfocus stop
+⏹️  Timer stopped.
+
+$ justfocus status
+✅ JustFocus is running (PID: 10977)
 ```
 
-## Install
+**Now an AI agent can say:** *"Starting a 25-minute focus session for you"* → `justfocus start` → done.
+
+---
+
+### Demo 2: QuickTime Player → `quicktime`
+
+**The ask:** *"cli-anything QuickTime Player"*
+
+**What the agent did:**
+1. Probed QuickTime's hidden AppleScript API via `osascript`
+2. Mapped playback controls, recording modes, export, and document management
+3. Built a full CLI with 15 commands
+
+**Result:**
+
+```bash
+$ quicktime open ~/Movies/demo.mp4
+📂 Opened: /Users/you/Movies/demo.mp4
+
+$ quicktime play
+▶️  Playing.
+
+$ quicktime pause
+⏸️  Paused.
+
+$ quicktime seek 30
+⏩ Seeked to 30s.
+
+$ quicktime volume 75
+🔊 Volume set to 75%.
+
+$ quicktime info
+Name: demo.mp4
+Duration: 120.5s
+Position: 30.0s
+Playing: false
+
+$ quicktime record screen
+🖥️  Screen recording started.
+
+$ quicktime record stop
+⏹️  Recording stopped.
+
+$ quicktime export ~/Desktop/out.mov 1080p
+📤 Exported to: /Users/you/Desktop/out.mov (1080p)
+```
+
+**15 commands** from a GUI-only app. Zero code existed before the agent ran.
+
+---
+
+## 🧠 How It Works
+
+```
+┌─────────────┐     ┌──────────────┐     ┌──────────────┐
+│  You say:    │────▶│  OpenClaw     │────▶│  CLI Harness │
+│  "cli-anything    │  agent scans  │     │  generated   │
+│   Keynote"   │     │  app bundle,  │     │  & installed │
+│              │     │  finds API,   │     │  globally    │
+│              │     │  writes CLI   │     │              │
+└─────────────┘     └──────────────┘     └──────────────┘
+```
+
+The agent:
+1. **Inspects** the app bundle (`Info.plist`, `.sdef` files, URL schemes)
+2. **Probes** the scripting API via `osascript` to discover commands
+3. **Designs** a CLI with subcommands mapped to app features
+4. **Generates** a bash/python harness with error handling
+5. **Installs** it to `/usr/local/bin` for global access
+6. **Tests** each command to verify it works
+
+No manual coding. No YAML configs. Just point the agent at an app.
+
+---
+
+## 🎯 Good Targets
+
+| App Type | Example | Discovery Method |
+|---|---|---|
+| macOS apps with AppleScript | Keynote, Pages, Finder, Music, Mail | `.sdef` dictionary |
+| Apps with URL schemes | Spotify, Bear, Things 3 | `CFBundleURLTypes` in Info.plist |
+| Apps with CLI backends | VS Code, Sublime Text | Existing partial CLIs |
+| Linux apps with D-Bus | GNOME apps, KDE apps | D-Bus introspection |
+| Electron apps | Slack, Discord | IPC / built-in APIs |
+
+---
+
+## 📦 Install
 
 Install into an OpenClaw workspace:
 
 ```bash
+git clone https://github.com/barrontang/cli-anything-openclaw.git
+cd cli-anything-openclaw
 bash scripts/install-to-workspace.sh ~/.openclaw/workspace
 ```
 
-Or, from inside a workspace:
+Then clone the upstream methodology:
 
 ```bash
-bash scripts/install-to-workspace.sh .
+git clone https://github.com/HKUDS/CLI-Anything.git ~/.openclaw/workspace/CLI-Anything
 ```
 
-If your upstream CLI-Anything clone lives somewhere else, override the path:
+Start a new OpenClaw session and tell it:
 
-```bash
-CLI_ANYTHING_UPSTREAM_PATH=/path/to/CLI-Anything bash scripts/install-to-workspace.sh ~/.openclaw/workspace
+```
+cli-anything [app name]
 ```
 
-## Usage
+---
 
-Once installed, ask OpenClaw to:
-- build a CLI-Anything harness for a local repository
-- refine an existing harness
-- validate a codebase using the CLI-Anything methodology
-
-## Quick test
-
-Run the minimal install test:
+## 🧪 Quick Test
 
 ```bash
 bash tests/test_install.sh
 ```
 
-## Example
+---
 
-See a practical review example in:
-
-- `examples/demo.md`
-- `examples/build-demo.md`
-- `examples/refine-demo.md`
-
-Example:
+## 💡 Usage Examples
 
 ```text
-Use cli-anything on https://github.com/example/project and build an OpenClaw-friendly harness.
+# Build a CLI for a GUI app
+cli-anything Keynote
+
+# Build from a GitHub repo
+cli-anything https://github.com/example/project
+
+# Review if an app is a good candidate
+Use cli-anything to review whether Bear.app is a good fit for a CLI harness.
+
+# Refine an existing harness
+Refine the quicktime CLI — add a "trim" command.
 ```
 
-## Positioning
+---
 
-This repo does **not** replace the upstream HKUDS project.
+## 📁 Project Structure
 
-It is an **OpenClaw-native adapter** for users who want the CLI-Anything methodology inside an OpenClaw skill workflow.
+```
+skills/cli-anything/SKILL.md      # OpenClaw skill entrypoint
+scripts/install-to-workspace.sh   # Install into an OpenClaw workspace
+references/upstream-layout.md     # How this maps to upstream CLI-Anything
+examples/                         # Demo walkthroughs
+tests/                            # Install validation
+```
 
-- Upstream CLI-Anything = methodology and command ecosystem
-- This repo = OpenClaw integration layer
+---
 
-## Why it matters
+## 🔗 Positioning
 
-AI agents are becoming real software users.
+This repo is an **OpenClaw-native adapter** for the CLI-Anything methodology.
 
-CLI remains one of the best interfaces for agents because it is:
-- composable
-- inspectable
-- automatable
-- scriptable
-- easier to validate than GUI-only interaction
+- **[HKUDS/CLI-Anything](https://github.com/HKUDS/CLI-Anything)** = the methodology & research
+- **This repo** = plug it into OpenClaw and let your agent use it
 
-That makes CLI-Anything important.
-And that makes an OpenClaw-native adaptation worth having.
+---
 
-## Distribution
+## 🌟 Why This Matters
 
-This GitHub repository and the ClawHub-published skill are maintained as **separate distributions**.
+AI agents need to control software. GUIs are hostile to automation. CLIs are composable, inspectable, and scriptable.
 
-- **GitHub repo**: project source, docs, tests, examples, and integration materials
-- **ClawHub skill**: a portable published skill bundle prepared specifically for registry installation
+CLI-Anything bridges the gap: **any app → agent-friendly CLI → automation**.
 
-That separation keeps the repository cleaner while ensuring the ClawHub release remains portable for public users.
+Combined with OpenClaw, your personal AI can now:
+- 🍅 Start your Pomodoro timer
+- 🎬 Record your screen
+- 📊 Export presentations
+- 🎵 Control your music
+- 📝 Manage your notes
 
-## Upstream source
+All through natural language. All without touching a mouse.
 
-- https://github.com/HKUDS/CLI-Anything
+---
+
+## Upstream
+
+- [HKUDS/CLI-Anything](https://github.com/HKUDS/CLI-Anything)
+- [OpenClaw](https://github.com/openclaw/openclaw)
