@@ -2,125 +2,220 @@
 
 [English](README.md)
 
-**把 CLI-Anything 方法论，以 OpenClaw 原生 workspace skill 的方式接入 OpenClaw。**
+**让 AI 把任何 macOS/Linux 应用变成命令行工具，60 秒搞定。**
 
-这个项目把 [HKUDS/CLI-Anything](https://github.com/HKUDS/CLI-Anything) 适配给 OpenClaw，让 agent-native CLI generation 可以直接进入 OpenClaw 的工作流，而不是依赖其他工具的插件体系。
+本项目将 [HKUDS/CLI-Anything](https://github.com/HKUDS/CLI-Anything) 方法论接入 OpenClaw，让你的 AI Agent 能自动分析 GUI 应用、生成 CLI 接口、从终端控制一切。
 
-## 为什么要做这个项目
+> *"只要有 AppleScript 字典、D-Bus 接口或 API —— 它就能变成 CLI。"*
 
-CLI-Anything 的核心价值，是把现有软件的能力整理成更适合 AI Agent 调用的 CLI 接口。
+---
 
-而 OpenClaw 的优势在于：
-- workspace 本地 skill
-- agent 驱动的文件工作流
-- 私有自动化环境
-- 更贴近真实操作场景的任务编排
+## 🎬 真实演示
 
-所以与其强行把 OpenClaw 套进 Claude Code 或 OpenCode 的插件安装方式，
-更合理的做法是：
+以下 CLI 均由 OpenClaw Agent 实时构建，每个不到 60 秒。没有模板，没有样板代码 —— Agent 自动分析应用的脚本接口，生成可运行的 CLI。
 
-**把 CLI-Anything 包装成 OpenClaw 能直接使用的 Skill 形态。**
+### 演示 1：JustFocus（番茄钟）→ `justfocus`
 
-## 这个仓库提供什么
+**指令：** *"cli-anything JustFocus"*
 
-- 一个 OpenClaw 原生 skill：`cli-anything`
-- 一个安装到 workspace 的脚本
-- 一个连接上游 CLI-Anything 方法论的适配层
-- 一个适合 OpenClaw 用户开始做 agent-native software automation 的入口
+**Agent 做了什么：**
+1. 在应用包中发现 `JustFocus.sdef`（AppleScript 字典）
+2. 识别出 4 个命令：`start pomodoro`、`short break`、`long break`、`stop`
+3. 生成 bash CLI，带自动启动应用功能
 
-## 仓库内容
-
-```text
-skills/cli-anything/SKILL.md      # OpenClaw skill 入口
-scripts/install-to-workspace.sh   # 安装到 OpenClaw workspace
-references/upstream-layout.md     # 与上游 CLI-Anything 的结构映射
-examples/                         # review / build / refine 示例
-launch/                           # 博客、X、微博、微信发布文案
-```
-
-## 安装方式
-
-安装到 OpenClaw workspace：
+**效果：**
 
 ```bash
+$ justfocus start
+🍅 Pomodoro started!
+
+$ justfocus break
+☕ Short break started!
+
+$ justfocus longbreak
+🏖️  Long break started!
+
+$ justfocus stop
+⏹️  Timer stopped.
+
+$ justfocus status
+✅ JustFocus is running (PID: 10977)
+```
+
+**现在 AI Agent 可以说：** *"帮你开始 25 分钟专注"* → `justfocus start` → 搞定。
+
+---
+
+### 演示 2：QuickTime Player → `quicktime`
+
+**指令：** *"cli-anything QuickTime Player"*
+
+**Agent 做了什么：**
+1. 通过 `osascript` 探测 QuickTime 的隐藏 AppleScript API
+2. 映射出播放控制、录制模式、导出和文档管理功能
+3. 构建了包含 15 个命令的完整 CLI
+
+**效果：**
+
+```bash
+$ quicktime open ~/Movies/demo.mp4
+📂 Opened: /Users/you/Movies/demo.mp4
+
+$ quicktime play
+▶️  Playing.
+
+$ quicktime pause
+⏸️  Paused.
+
+$ quicktime seek 30
+⏩ Seeked to 30s.
+
+$ quicktime volume 75
+🔊 Volume set to 75%.
+
+$ quicktime info
+Name: demo.mp4
+Duration: 120.5s
+Position: 30.0s
+Playing: false
+
+$ quicktime record screen
+🖥️  Screen recording started.
+
+$ quicktime record stop
+⏹️  Recording stopped.
+
+$ quicktime export ~/Desktop/out.mov 1080p
+📤 Exported to: /Users/you/Desktop/out.mov (1080p)
+```
+
+从一个纯 GUI 应用生成 **15 个命令**。之前一行代码都没有。
+
+---
+
+## 🧠 工作原理
+
+```
+┌─────────────┐     ┌──────────────┐     ┌──────────────┐
+│  你说：       │────▶│  OpenClaw     │────▶│  CLI 已生成   │
+│  "cli-anything    │  Agent 扫描   │     │  全局可用     │
+│   Keynote"   │     │  应用包，发现  │     │              │
+│              │     │  API，生成CLI │     │              │
+└─────────────┘     └──────────────┘     └──────────────┘
+```
+
+Agent 的工作流程：
+1. **检查** 应用包（`Info.plist`、`.sdef` 文件、URL Scheme）
+2. **探测** 脚本 API，通过 `osascript` 发现可用命令
+3. **设计** CLI 子命令，映射到应用功能
+4. **生成** bash/python 脚本，带错误处理
+5. **安装** 到 `/usr/local/bin`，全局可用
+6. **测试** 每个命令，验证可用性
+
+不需要手写代码。不需要 YAML 配置。只需要把 Agent 指向一个应用。
+
+---
+
+## 🎯 适合的目标应用
+
+| 应用类型 | 示例 | 发现方式 |
+|---|---|---|
+| 带 AppleScript 的 macOS 应用 | Keynote、Pages、Finder、Music、Mail | `.sdef` 字典 |
+| 带 URL Scheme 的应用 | Spotify、Bear、Things 3 | Info.plist 中的 `CFBundleURLTypes` |
+| 有 CLI 后端的应用 | VS Code、Sublime Text | 已有的部分 CLI |
+| Linux D-Bus 应用 | GNOME 应用、KDE 应用 | D-Bus 自省 |
+| Electron 应用 | Slack、Discord | IPC / 内置 API |
+
+---
+
+## 📦 安装
+
+```bash
+git clone https://github.com/barrontang/cli-anything-openclaw.git
+cd cli-anything-openclaw
 bash scripts/install-to-workspace.sh ~/.openclaw/workspace
 ```
 
-如果你当前就在某个 workspace 目录里，也可以：
+然后克隆上游方法论仓库：
 
 ```bash
-bash scripts/install-to-workspace.sh .
+git clone https://github.com/HKUDS/CLI-Anything.git ~/.openclaw/workspace/CLI-Anything
 ```
 
-如果你的上游 CLI-Anything clone 不在默认路径，可以通过环境变量指定：
+启动一个 OpenClaw 会话，然后说：
 
-```bash
-CLI_ANYTHING_UPSTREAM_PATH=/path/to/CLI-Anything bash scripts/install-to-workspace.sh ~/.openclaw/workspace
+```
+cli-anything [应用名]
 ```
 
-## 使用方式
+---
 
-安装完成后，你可以让 OpenClaw：
-- 为本地仓库构建 CLI-Anything harness
-- 对已有 harness 做 refine
-- 按 CLI-Anything 方法论验证一个代码库是否适合 CLI 化
-
-例如：
-
-```text
-Use cli-anything on https://github.com/example/project and build an OpenClaw-friendly harness.
-```
-
-## 快速测试
-
-运行最小安装测试：
+## 🧪 快速测试
 
 ```bash
 bash tests/test_install.sh
 ```
 
-## 示例
+---
 
-可以参考这些示例：
+## 💡 使用示例
 
-- `examples/demo.md`
-- `examples/build-demo.md`
-- `examples/refine-demo.md`
+```text
+# 为 GUI 应用构建 CLI
+cli-anything Keynote
 
-## 项目定位
+# 从 GitHub 仓库构建
+cli-anything https://github.com/example/project
 
-这个仓库**不是**用来替代上游 HKUDS CLI-Anything 的。
+# 评估一个应用是否适合 CLI 化
+用 cli-anything 评估一下 Bear.app 是否适合生成 CLI。
 
-它更准确的定位是：
+# 优化已有的 harness
+优化 quicktime CLI —— 加一个 trim 命令。
+```
 
-**一个面向 OpenClaw 的原生适配层。**
+---
 
-- 上游 CLI-Anything = 方法论与命令生态
-- 这个仓库 = OpenClaw 集成层
+## 📁 项目结构
 
-## 为什么它有意义
+```
+skills/cli-anything/SKILL.md      # OpenClaw skill 入口
+scripts/install-to-workspace.sh   # 安装到 workspace 的脚本
+references/upstream-layout.md     # 与上游 CLI-Anything 的结构映射
+examples/                         # 演示和示例
+  harnesses/                      # 真实可运行的 CLI 脚本
+tests/                            # 安装验证
+```
 
-AI Agent 正在逐渐成为真正的软件用户。
+---
 
-而 CLI 依然是最适合 Agent 的接口之一，因为它：
-- 可组合
-- 可检查
-- 可自动化
-- 可脚本化
-- 比纯 GUI 更容易验证
+## 🔗 项目定位
 
-这也是 CLI-Anything 为什么重要。
-而这个项目的意义，就是让 OpenClaw 也能自然使用这套方法论。
+本仓库是 CLI-Anything 方法论的 **OpenClaw 原生适配层**。
 
-## 发布方式
+- **[HKUDS/CLI-Anything](https://github.com/HKUDS/CLI-Anything)** = 方法论与研究
+- **本仓库** = 接入 OpenClaw，让 Agent 直接使用
 
-这个 GitHub 仓库和发布到 ClawHub 的 skill，采用的是**分离发布**策略。
+---
 
-- **GitHub repo**：保存项目源码、文档、测试、示例和集成说明
-- **ClawHub skill**：专门为公共注册表准备的可移植 skill 发布包
+## 🌟 为什么这很重要
 
-这样做的好处是：既能保持 GitHub 仓库结构清晰，也能保证 ClawHub 上的公开版本是可移植、可安装的。
+AI Agent 需要控制软件。GUI 对自动化是敌对的。CLI 可组合、可检查、可脚本化。
+
+CLI-Anything 架起了这座桥：**任何应用 → Agent 友好的 CLI → 自动化**。
+
+结合 OpenClaw，你的私人 AI 现在可以：
+- 🍅 启动你的番茄钟
+- 🎬 录制你的屏幕
+- 📊 导出演示文稿
+- 🎵 控制音乐播放
+- 📝 管理你的笔记
+
+全部通过自然语言。全部不需要碰鼠标。
+
+---
 
 ## 上游项目
 
-- https://github.com/HKUDS/CLI-Anything
+- [HKUDS/CLI-Anything](https://github.com/HKUDS/CLI-Anything)
+- [OpenClaw](https://github.com/openclaw/openclaw)
