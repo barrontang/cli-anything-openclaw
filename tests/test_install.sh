@@ -12,5 +12,8 @@ TARGET="$TMPDIR/skills/cli-anything/SKILL.md"
 grep -q '^---' "$TARGET"
 grep -q '^name: cli-anything$' "$TARGET"
 grep -q '^description:' "$TARGET"
+grep -q "$TMPDIR" "$TARGET"
+! grep -q 'default upstream path' "$TARGET"
+! grep -q '\\$' "$TARGET"
 
 echo 'PASS: install script copied a valid skill file'
